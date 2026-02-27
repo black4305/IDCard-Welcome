@@ -7,170 +7,233 @@
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
+        :root {
+            --cyan: #00e5ff;
+            --cyan-glow: rgba(0, 229, 255, 0.6);
+            --orange: #FF8A00;
+            --orange-glow: rgba(255, 138, 0, 0.6);
+            --bg-dark: #070a10;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
-            background-color: #0d1117; /* 다크 모드 배경 */
+            background-color: var(--bg-dark); 
             color: #ffffff; 
             font-family: 'Pretendard', sans-serif; 
             display: flex; flex-direction: column; 
             justify-content: center; align-items: center; 
             height: 100vh; overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 0%, #1a2332 0%, transparent 50%),
-                linear-gradient(0deg, rgba(0,229,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 20px 20px, 20px 20px;
+            position: relative;
         }
+
+        /* 디지털 스캔라인 (모니터 효과) */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* 배경 그리드 애니메이션 */
+        .bg-grid {
+            position: absolute; width: 200%; height: 200%;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #111a24 0%, var(--bg-dark) 60%),
+                linear-gradient(0deg, rgba(0,229,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            animation: panGrid 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes panGrid { 0% { transform: translate(-10%, -10%); } 100% { transform: translate(0%, 0%); } }
 
         .container {
             width: 90%; max-width: 400px;
             text-align: center;
             position: relative;
+            z-index: 10;
         }
 
-        /* --- 1. 레이더 로딩 UI --- */
+        /* --- 1. 극적인 레이더 로딩 UI --- */
         #loadingScreen {
             display: flex; flex-direction: column; align-items: center;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
         }
         
         .radar-box {
-            position: relative; width: 150px; height: 150px; margin-bottom: 30px;
+            position: relative; width: 180px; height: 180px; margin-bottom: 40px;
         }
         
         .radar {
             width: 100%; height: 100%;
             border-radius: 50%;
-            border: 2px solid rgba(0, 229, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 30px var(--cyan-glow), inset 0 0 20px var(--cyan-glow);
             position: relative; overflow: hidden;
+            background: rgba(0, 229, 255, 0.05);
         }
-        
+
+        /* 레이더 십자선 */
+        .radar::before {
+            content: ''; position: absolute;
+            top: 0; left: 50%; width: 1px; height: 100%;
+            background: rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 10px var(--cyan);
+        }
         .radar::after {
             content: ''; position: absolute;
-            top: 50%; left: 50%;
+            top: 50%; left: 0; width: 100%; height: 1px;
+            background: rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        
+        /* 레이더 스캐너 */
+        .scanner {
+            position: absolute; top: 50%; left: 50%;
             width: 50%; height: 50%;
             background: linear-gradient(45deg, rgba(0,229,255,0) 0%, rgba(0,229,255,0.8) 100%);
             transform-origin: 0% 0%;
-            animation: scan 1.5s linear infinite;
+            animation: scan 1.2s linear infinite;
+        }
+
+        /* 발견된 타겟 핑 */
+        .target-blip {
+            position: absolute; width: 12px; height: 12px;
+            background: #fff; border-radius: 50%;
+            top: 30%; left: 60%;
+            box-shadow: 0 0 15px #fff, 0 0 30px var(--cyan);
+            animation: blink 1.2s infinite;
+            opacity: 0;
         }
 
         @keyframes scan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes blink { 0%, 49% { opacity: 0; } 50%, 100% { opacity: 1; } }
 
-        .loading-text {
-            color: #00e5ff; font-weight: 700; font-size: 28px; letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        .terminal-text {
+            color: var(--cyan); font-weight: 800; font-size: 22px; letter-spacing: 3px;
+            text-shadow: 0 0 15px var(--cyan-glow);
+            font-family: monospace;
+            margin-bottom: 8px;
+        }
+        
+        .terminal-sub { 
+            color: #8b949e; font-size: 14px; font-family: monospace;
             animation: pulse 1s infinite alternate;
         }
 
-        .loading-sub { color: #8b949e; font-size: 18px; margin-top: 10px; }
+        @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+        /* 화면 번쩍임 효과 (전환 시) */
+        .flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 100;
+            opacity: 0; pointer-events: none;
+        }
+        .flash-overlay.active { animation: flash 0.8s ease-out forwards; }
+        @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 
         /* --- 2. 보상 팝업 UI --- */
         #rewardScreen {
-            display: none; opacity: 0; transform: scale(0.9);
-            position: relative; z-index: 1;
-            background: rgba(22, 27, 34, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 138, 0, 0.3);
-            border-radius: 24px; padding: 40px 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: none; opacity: 0; transform: translateY(30px) scale(0.95);
+            background: linear-gradient(145deg, rgba(22, 27, 34, 0.9), rgba(10, 14, 20, 0.9));
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 138, 0, 0.4);
+            border-radius: 24px; padding: 40px 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), 
+                        0 0 30px rgba(255, 138, 0, 0.15),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); /* 탄성 있는 등장 */
         }
 
-        #rewardScreen.show { display: block; opacity: 1; transform: scale(1); }
+        #rewardScreen.show { display: block; opacity: 1; transform: translateY(0) scale(1); }
 
         .badge {
-            display: inline-block; padding: 6px 12px;
-            background: rgba(0, 229, 255, 0.1); color: #00e5ff;
-            border-radius: 20px; font-size: 16px; font-weight: 800;
-            letter-spacing: 1px; margin-bottom: 20px; border: 1px solid rgba(0, 229, 255, 0.3);
+            display: inline-block; padding: 6px 16px;
+            background: rgba(0, 229, 255, 0.1); color: var(--cyan);
+            border-radius: 30px; font-size: 12px; font-weight: 900;
+            letter-spacing: 2px; margin-bottom: 24px; 
+            border: 1px solid var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
         }
 
-        .title { font-size: 34px; font-weight: 800; margin-bottom: 15px; color: #ffffff; }
-        .desc { color: #a5b4fc; font-size: 19px; margin-bottom: 30px; line-height: 1.5; }
+        .title { font-size: 28px; font-weight: 900; margin-bottom: 12px; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .desc { color: #a5b4fc; font-size: 15px; margin-bottom: 35px; line-height: 1.6; word-break: keep-all; }
 
         .coin-display {
-            width: 140px; height: 140px; margin: 0 auto 20px;
-            background: linear-gradient(135deg, #FFD700 0%, #FF8A00 100%);
+            width: 140px; height: 140px; margin: 0 auto 30px;
+            background: radial-gradient(circle at 30% 30%, #FFE066, #FF8A00, #E65C00);
             border-radius: 50%; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            box-shadow: 0 0 30px rgba(255, 138, 0, 0.5), inset 0 5px 15px rgba(255,255,255,0.5);
-            animation: coinDrop 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, float 3s ease-in-out 1s infinite;
-            border: 4px solid #fff;
+            box-shadow: 0 0 40px var(--orange-glow), 
+                        inset 0 8px 20px rgba(255,255,255,0.6),
+                        inset 0 -8px 20px rgba(0,0,0,0.4);
+            animation: float 3s ease-in-out infinite, pulseGlow 2s infinite alternate;
+            border: 3px solid rgba(255,255,255,0.8);
+            position: relative;
         }
 
-        @keyframes coinDrop {
-            0%   { transform: translateY(-300px); opacity: 0; }
-            60%  { opacity: 1; }
-            100% { transform: translateY(0px); opacity: 1; }
+        /* 코인 주변 파티클 효과 (가상요소로 간단히 구현) */
+        .coin-display::before {
+            content: ''; position: absolute; width: 160%; height: 160%;
+            border-radius: 50%; border: 1px dashed rgba(255, 138, 0, 0.5);
+            animation: spin 10s linear infinite;
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 30px var(--orange-glow); } 100% { box-shadow: 0 0 60px rgba(255, 138, 0, 0.8); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .coin-amount { font-size: 42px; font-weight: 900; color: #fff; text-shadow: 1px 2px 4px rgba(0,0,0,0.3); }
-        .coin-label { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.9); margin-top: -5px; }
+        .coin-amount { font-size: 38px; font-weight: 900; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.4); letter-spacing: -1px; }
+        .coin-label { font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin-top: -2px; letter-spacing: 1px; }
 
         .wallet-info {
-            background: rgba(0,0,0,0.3); border-radius: 12px;
-            padding: 15px; font-size: 17px; color: #8b949e; margin-bottom: 30px;
+            background: rgba(0,0,0,0.4); border-radius: 16px;
+            padding: 16px; font-size: 14px; color: #8b949e; margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .wallet-info span { color: #FF8A00; font-weight: bold; }
+        .wallet-info span { color: var(--orange); font-weight: 900; font-size: 16px; }
 
         .btn {
             background: linear-gradient(90deg, #FF8A00 0%, #FF512F 100%);
-            color: white; border: none; width: 100%; padding: 22px;
-            font-size: 20px; font-weight: 800; border-radius: 16px;
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 10px 20px rgba(255, 81, 47, 0.3);
+            color: white; border: none; width: 100%; padding: 20px;
+            font-size: 17px; font-weight: 800; border-radius: 16px;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 10px 25px rgba(255, 81, 47, 0.4);
+            position: relative; overflow: hidden;
         }
 
-        .btn:active { transform: scale(0.96); box-shadow: 0 5px 10px rgba(255, 81, 47, 0.2); }
-
-        /* --- 3. 코인 비 파티클 --- */
-        .coin-rain-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+        /* 버튼 스와이프 빛 효과 */
+        .btn::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-20deg); animation: btnShine 3s infinite;
         }
 
-        .coin-particle {
-            position: absolute;
-            top: -100px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, #FFE566, #FFD700 40%, #FF8A00 80%, #CC6A00);
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 0 6px rgba(255,200,0,0.4);
-            animation: coinRain linear forwards, sway ease-in-out infinite alternate;
-        }
+        @keyframes btnShine { 0% { left: -100%; } 20%, 100% { left: 200%; } }
 
-        @keyframes coinRain {
-            0%   { top: -100px; }
-            100% { top: 110vh; }
-        }
-
-        @keyframes sway {
-            0%   { margin-left: -12px; }
-            100% { margin-left: 12px; }
-        }
+        .btn:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(255, 81, 47, 0.3); }
     </style>
 </head>
 <body>
 
+    <div class="bg-grid"></div>
+    <div class="flash-overlay" id="flash"></div>
+
     <div class="container" id="loadingScreen">
         <div class="radar-box">
-            <div class="radar"></div>
+            <div class="radar">
+                <div class="scanner"></div>
+                <div class="target-blip"></div>
+            </div>
         </div>
-        <div class="loading-text">NFC 태그 감지됨</div>
-        <div class="loading-sub">고대 유물 데이터를 암호 해독 중입니다...</div>
+        <div class="terminal-text" id="statusText">NFC_DETECTED</div>
+        <div class="terminal-sub">고대 유물 데이터를 암호 해독 중입니다...</div>
     </div>
 
     <div class="container" id="rewardScreen">
@@ -179,12 +242,12 @@
         <p class="desc">이순신 장군의 숨겨진 유물 해독에<br>성공했습니다. 훌륭합니다, 요원님!</p>
         
         <div class="coin-display">
-            <div class="coin-amount">500</div>
+            <div class="coin-amount" id="coinCounter">0</div>
             <div class="coin-label">Ne-Coin</div>
         </div>
         
         <div class="wallet-info">
-            디지털 지갑으로 송금되었습니다.<br>
+            디지털 지갑으로 송금 완료<br>
             누적 자산: <span>1,500 NC</span>
         </div>
         
@@ -192,48 +255,52 @@
     </div>
 
     <script>
-        function createCoinRain() {
-            const container = document.createElement('div');
-            container.className = 'coin-rain-container';
-            document.body.appendChild(container);
-
-            const COUNT = 150;
-            for (let i = 0; i < COUNT; i++) {
-                const coin = document.createElement('div');
-                coin.className = 'coin-particle';
-
-                const size = 80 + Math.random() * 60;               // 80px ~ 140px
-                const left = Math.random() * 100;                   // 0% ~ 100%
-                const duration = 1.5 + Math.random() * 3.5;        // 1.5s ~ 5s
-                const delay = Math.random() * 3;                  // 0s ~ 3s
-                const opacity = 0.3 + Math.random() * 0.6;         // 0.3 ~ 0.9
-                const swayDuration = 0.8 + Math.random() * 1.2;    // 0.8s ~ 2s sway cycle
-
-                coin.style.cssText = `
-                    left: ${left}%;
-                    width: ${size}px;
-                    height: ${size}px;
-                    opacity: ${opacity};
-                    animation-duration: ${duration}s, ${swayDuration}s;
-                    animation-delay: ${delay}s, ${delay}s;
-                `;
-
-                container.appendChild(coin);
-            }
+        // 숫자 카운트업 애니메이션 함수
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // easeOutExpo 효과 적용 (끝으로 갈수록 느려짐)
+                const easeOut = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                obj.innerHTML = Math.floor(easeOut * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
         }
 
-        // 2.5초 동안 레이더 애니메이션을 보여주고 팝업으로 전환
+        // 시나리오 진행
         setTimeout(() => {
-            const loader = document.getElementById('loadingScreen');
-            const reward = document.getElementById('rewardScreen');
+            // 1. 2초 뒤: 텍스트 변경으로 긴장감 고조
+            document.getElementById('statusText').innerText = "DECRYPTION_SUCCESS";
+            document.getElementById('statusText').style.color = "#00ff88"; // 초록색으로 변경
             
-            loader.style.opacity = '0';
             setTimeout(() => {
-                loader.style.display = 'none';
-                reward.classList.add('show');
-                createCoinRain();
-            }, 500); // 페이드아웃 후 전환
-        }, 2500);
+                // 2. 2.5초 뒤: 화면 번쩍임 효과와 함께 화면 전환
+                const flash = document.getElementById('flash');
+                const loader = document.getElementById('loadingScreen');
+                const reward = document.getElementById('rewardScreen');
+                const coinElement = document.getElementById('coinCounter');
+                
+                flash.classList.add('active');
+                
+                // 로딩 숨기고 보상 표시
+                loader.style.opacity = '0';
+                loader.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    reward.classList.add('show');
+                    
+                    // 보상 팝업이 뜨면서 코인 숫자 카운트업 (0 -> 500, 1.5초 동안)
+                    setTimeout(() => {
+                        animateValue(coinElement, 0, 500, 1500);
+                    }, 300); // 팝업 애니메이션과 타이밍 맞춤
+                    
+                }, 200);
+            }, 500);
+        }, 2000);
     </script>
 </body>
 </html>
