@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeStory - 특수 요원 단말기</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background-color: #0d1117; /* 다크 모드 배경 */
+            color: #ffffff; 
+            font-family: 'Pretendard', sans-serif; 
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; 
+            height: 100vh; overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1a2332 0%, transparent 50%),
+                linear-gradient(0deg, rgba(0,229,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+        }
+
+        .container {
+            width: 90%; max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* --- 1. 레이더 로딩 UI --- */
+        #loadingScreen {
+            display: flex; flex-direction: column; align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .radar-box {
+            position: relative; width: 150px; height: 150px; margin-bottom: 30px;
+        }
+        
+        .radar {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+            position: relative; overflow: hidden;
+        }
+        
+        .radar::after {
+            content: ''; position: absolute;
+            top: 50%; left: 50%;
+            width: 50%; height: 50%;
+            background: linear-gradient(45deg, rgba(0,229,255,0) 0%, rgba(0,229,255,0.8) 100%);
+            transform-origin: 0% 0%;
+            animation: scan 1.5s linear infinite;
+        }
+
+        @keyframes scan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loading-text {
+            color: #00e5ff; font-weight: 700; font-size: 20px; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        .loading-sub { color: #8b949e; font-size: 14px; margin-top: 10px; }
+
+        @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        /* --- 2. 보상 팝업 UI --- */
+        #rewardScreen {
+            display: none; opacity: 0; transform: scale(0.9);
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 138, 0, 0.3);
+            border-radius: 24px; padding: 40px 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #rewardScreen.show { display: block; opacity: 1; transform: scale(1); }
+
+        .badge {
+            display: inline-block; padding: 6px 12px;
+            background: rgba(0, 229, 255, 0.1); color: #00e5ff;
+            border-radius: 20px; font-size: 12px; font-weight: 800;
+            letter-spacing: 1px; margin-bottom: 20px; border: 1px solid rgba(0, 229, 255, 0.3);
+        }
+
+        .title { font-size: 26px; font-weight: 800; margin-bottom: 15px; color: #ffffff; }
+        .desc { color: #a5b4fc; font-size: 15px; margin-bottom: 30px; line-height: 1.5; }
+
+        .coin-display {
+            width: 120px; height: 120px; margin: 0 auto 20px;
+            background: linear-gradient(135deg, #FFD700 0%, #FF8A00 100%);
+            border-radius: 50%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            box-shadow: 0 0 30px rgba(255, 138, 0, 0.5), inset 0 5px 15px rgba(255,255,255,0.5);
+            animation: float 3s ease-in-out infinite;
+            border: 4px solid #fff;
+        }
+
+        @keyframes float { 
+            0% { transform: translateY(0px); } 
+            50% { transform: translateY(-10px); } 
+            100% { transform: translateY(0px); } 
+        }
+
+        .coin-amount { font-size: 32px; font-weight: 900; color: #fff; text-shadow: 1px 2px 4px rgba(0,0,0,0.3); }
+        .coin-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.9); margin-top: -5px; }
+
+        .wallet-info {
+            background: rgba(0,0,0,0.3); border-radius: 12px;
+            padding: 15px; font-size: 14px; color: #8b949e; margin-bottom: 30px;
+        }
+        .wallet-info span { color: #FF8A00; font-weight: bold; }
+
+        .btn {
+            background: linear-gradient(90deg, #FF8A00 0%, #FF512F 100%);
+            color: white; border: none; width: 100%; padding: 18px;
+            font-size: 16px; font-weight: 800; border-radius: 16px;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 20px rgba(255, 81, 47, 0.3);
+        }
+
+        .btn:active { transform: scale(0.96); box-shadow: 0 5px 10px rgba(255, 81, 47, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="loadingScreen">
+        <div class="radar-box">
+            <div class="radar"></div>
+        </div>
+        <div class="loading-text">NFC 태그 감지됨</div>
+        <div class="loading-sub">고대 유물 데이터를 암호 해독 중입니다...</div>
+    </div>
+
+    <div class="container" id="rewardScreen">
+        <div class="badge">MISSION CLEARED</div>
+        <h1 class="title">별의 조각 획득!</h1>
+        <p class="desc">이순신 장군의 숨겨진 유물 해독에<br>성공했습니다. 훌륭합니다, 요원님!</p>
+        
+        <div class="coin-display">
+            <div class="coin-amount">500</div>
+            <div class="coin-label">Ne-Coin</div>
+        </div>
+        
+        <div class="wallet-info">
+            디지털 지갑으로 송금되었습니다.<br>
+            누적 자산: <span>1,500 NC</span>
+        </div>
+        
+        <button class="btn" onclick="alert('다음 위치 데이터를 수신합니다.')">다음 퀘스트 진행하기</button>
+    </div>
+
+    <script>
+        // 2.5초 동안 레이더 애니메이션을 보여주고 팝업으로 전환
+        setTimeout(() => {
+            const loader = document.getElementById('loadingScreen');
+            const reward = document.getElementById('rewardScreen');
+            
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                reward.classList.add('show');
+            }, 500); // 페이드아웃 후 전환
+        }, 2500);
+    </script>
+</body>
+</html>
